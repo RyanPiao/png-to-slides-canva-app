@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support — PNG to Slides</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
+        h1 { color: #1a1a2e; border-bottom: 2px solid #7b2ff7; padding-bottom: 10px; }
+        h2 { color: #1a1a2e; margin-top: 30px; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.95em; }
+        .tip { background: #f0e6ff; border-left: 4px solid #7b2ff7; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+    </style>
+</head>
+<body>
+    <h1>Support — PNG to Slides</h1>
+
+    <h2>How to Use</h2>
+    <ol>
+        <li>Open a presentation in Canva</li>
+        <li>Select the page after which you want to insert slides</li>
+        <li>Open the <strong>PNG to Slides</strong> app from the sidebar</li>
+        <li>Click the file picker and select your PNG files (you can select multiple)</li>
+        <li>Click <strong>Insert Slides</strong></li>
+        <li>Wait for the progress bar to complete</li>
+    </ol>
+
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>What file formats are supported?</h3>
+    <p>Only PNG files (<code>.png</code>) are supported. Other image formats (JPEG, SVG, etc.) will be rejected by the file picker.</p>
+
+    <h3>What order are the slides inserted in?</h3>
+    <p>Files are sorted alphabetically by filename. Use zero-padded names for correct ordering:</p>
+    <div class="tip">
+        <strong>Good:</strong> <code>page_001.png</code>, <code>page_002.png</code>, ..., <code>page_099.png</code><br>
+        <strong>Bad:</strong> <code>page_1.png</code>, <code>page_2.png</code>, ..., <code>page_10.png</code> (10 sorts before 2)
+    </div>
+
+    <h3>Where are slides inserted?</h3>
+    <p>New slides are added immediately after the currently selected page in your presentation. Select the page you want to insert after before clicking "Insert Slides".</p>
+
+    <h3>How are images sized?</h3>
+    <p>Each image is scaled so its height matches the page height, and it's centered horizontally. If the scaled image is wider than the page, the sides will extend beyond the edges.</p>
+
+    <h3>Is there a file size limit?</h3>
+    <p>Individual PNG files should be under 10 MB. Files are processed as data URLs in the browser, so very large files may cause performance issues.</p>
+
+    <h3>Why does it say "Adding pages is not supported"?</h3>
+    <p>The <code>addPage()</code> API is only available in certain Canva design types (like Presentations). It's not supported in Whiteboards, Docs, or some other design types.</p>
+
+    <h3>The app seems slow with many files?</h3>
+    <p>The Canva API limits page additions to 3 per second. The app waits 350ms between each page insertion to stay within this limit. For 100 slides, expect about 35 seconds.</p>
+
+    <h2>Report an Issue</h2>
+    <p>If you encounter a bug or have a feature request, please open an issue on our GitHub repository:</p>
+    <p><a href="https://github.com/RyanPiao/png-to-slides-canva-app/issues">github.com/RyanPiao/png-to-slides-canva-app/issues</a></p>
+
+    <h2>Source Code</h2>
+    <p>This app is open source: <a href="https://github.com/RyanPiao/png-to-slides-canva-app">github.com/RyanPiao/png-to-slides-canva-app</a></p>
+</body>
+</html>
