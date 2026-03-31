@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 import { useFeatureSupport } from "@canva/app-hooks";
 import {
   Button,
@@ -39,7 +40,29 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function addPageWithRetry(
+  options: Parameters<typeof addPage>[0],
+  maxRetries = 3
+): Promise<void> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await addPage(options);
+      return;
+    } catch (err) {
+      const isRateLimited =
+        err instanceof Error && err.message.toLowerCase().includes("rate");
+      if (isRateLimited && attempt < maxRetries) {
+        // Exponential backoff: 2s, 4s, 8s
+        await delay(2000 * Math.pow(2, attempt));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 export const App = () => {
+  const intl = useIntl();
   const isSupported = useFeatureSupport();
   const canAddPage = isSupported(addPage);
 
@@ -104,8 +127,8 @@ export const App = () => {
           aiDisclosure: "none",
         });
 
-        // Add a new page with the image as a full-page element
-        await addPage({
+        // Add a new page with the image as a full-page element (with retry)
+        await addPageWithRetry({
           elements: [
             {
               type: "image",
@@ -119,13 +142,14 @@ export const App = () => {
           ],
         });
 
-        // Rate limit: max 3 pages/sec → wait 350ms between pages
+        // Rate limit: max 3 pages/sec → wait 500ms between pages
         if (i < files.length - 1) {
-          await delay(350);
+          await delay(500);
         }
       }
 
       setStatus("done");
+      setFiles([]); // Auto-clear files after successful insert
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Unknown error");
@@ -136,11 +160,18 @@ export const App = () => {
     <div className={styles.scrollContainer}>
       <Rows spacing="2u">
         <Text size="large" variant="bold">
-          PNG to Slides
+          <FormattedMessage
+            id="app.title"
+            defaultMessage="PNG to Slides"
+            description="App title displayed at the top of the sidebar"
+          />
         </Text>
         <Text>
-          Select PNG files to insert as full-page slides. Pages are added after
-          the currently selected page, sorted by filename.
+          <FormattedMessage
+            id="app.description"
+            defaultMessage="Select PNG files to insert as full-page slides. Pages are added after the currently selected page, sorted by filename."
+            description="App description explaining how the app works"
+          />
         </Text>
 
         <FileInput
@@ -156,19 +187,42 @@ export const App = () => {
           stretch
           tooltipLabel={
             !canAddPage
-              ? "Adding pages is not supported in this design type"
+              ? intl.formatMessage({
+                  id: "app.tooltip.unsupported",
+                  defaultMessage:
+                    "Adding pages is not supported in this design type",
+                  description:
+                    "Tooltip shown when the design type does not support adding pages",
+                })
               : undefined
           }
         >
-          {status === "inserting"
-            ? `Inserting ${progress.current}/${progress.total}...`
-            : `Insert ${files.length} Slide${files.length !== 1 ? "s" : ""}`}
+          {status === "inserting" ? (
+            <FormattedMessage
+              id="app.button.inserting"
+              defaultMessage="Inserting {current}/{total}..."
+              description="Button text shown during slide insertion progress"
+              values={{ current: progress.current, total: progress.total }}
+            />
+          ) : (
+            <FormattedMessage
+              id="app.button.insert"
+              defaultMessage="Insert {count} {count, plural, one {Slide} other {Slides}}"
+              description="Button text to start inserting selected PNG files as slides"
+              values={{ count: files.length }}
+            />
+          )}
         </Button>
 
         {status === "inserting" && (
           <Rows spacing="1u">
             <Text size="small">
-              Inserting {progress.current} of {progress.total}...
+              <FormattedMessage
+                id="app.progress.text"
+                defaultMessage="Inserting {current} of {total}..."
+                description="Progress text showing how many slides have been inserted"
+                values={{ current: progress.current, total: progress.total }}
+              />
             </Text>
             <ProgressBar
               size="medium"
@@ -179,18 +233,35 @@ export const App = () => {
 
         {status === "done" && (
           <Alert tone="positive">
-            Inserted {progress.total} slide{progress.total !== 1 ? "s" : ""}
+            <FormattedMessage
+              id="app.alert.success"
+              defaultMessage="Inserted {total} {total, plural, one {slide} other {slides}}"
+              description="Success message shown after all slides are inserted"
+              values={{ total: progress.total }}
+            />
           </Alert>
         )}
 
         {status === "error" && (
-          <Alert tone="critical">Error: {errorMsg}</Alert>
+          <Alert tone="critical">
+            <FormattedMessage
+              id="app.alert.error"
+              defaultMessage="Error: {errorMsg}"
+              description="Error message shown when slide insertion fails"
+              values={{ errorMsg }}
+            />
+          </Alert>
         )}
 
         {files.length > 0 && (
           <>
             <Text size="small" variant="bold">
-              {files.length} file{files.length !== 1 ? "s" : ""} selected
+              <FormattedMessage
+                id="app.files.count"
+                defaultMessage="{count} {count, plural, one {file} other {files}} selected"
+                description="Text showing the number of files selected for insertion"
+                values={{ count: files.length }}
+              />
             </Text>
             {files.map((file, index) => (
               <FileInputItem
@@ -205,7 +276,11 @@ export const App = () => {
               onClick={handleClearAll}
               disabled={status === "inserting"}
             >
-              Clear all
+              <FormattedMessage
+                id="app.button.clearAll"
+                defaultMessage="Clear all"
+                description="Button to remove all selected files from the list"
+              />
             </Button>
           </>
         )}
