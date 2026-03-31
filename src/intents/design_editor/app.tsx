@@ -142,9 +142,9 @@ export const App = () => {
           ],
         });
 
-        // Rate limit: max 3 pages/sec → wait 500ms between pages
+        // Rate limit: max 3 pages/sec → wait 1s between pages for safety
         if (i < files.length - 1) {
-          await delay(500);
+          await delay(1000);
         }
       }
 
